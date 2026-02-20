@@ -1,0 +1,211 @@
+/* Zen Kaku Gothic New - Local Font (Full Japanese Set) */
+@font-face {
+  font-family: 'Zen Kaku Gothic New';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/ZenKakuGothicNew-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Zen Kaku Gothic New';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/ZenKakuGothicNew-Bold.woff2') format('woff2');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+#mv-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#mv-container canvas {
+  display: block;
+}
+
+.mv-lyric-overlay {
+  position: absolute;
+  top: 58%;
+  transform: translateY(-50%);
+  padding: 0;
+  border: none;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background-color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+  z-index: 400;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mv-lyric-grid {
+  position: relative;
+}
+
+.mv-lyric-grid::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  background-image:
+    linear-gradient(rgba(242, 243, 244, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 243, 244, 0.08) 1px, transparent 1px);
+  background-size: 16px 16px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.mv-lyric-right {
+  right: 6%;
+  left: auto;
+  text-align: right;
+}
+
+.mv-lyric-left {
+  left: 6%;
+  right: auto;
+  text-align: left;
+}
+
+.mv-lyric-small {
+  letter-spacing: 0.2em;
+}
+
+.mv-lyric-medium {
+  letter-spacing: 0.18em;
+}
+
+.mv-lyric-large {
+  letter-spacing: 0.14em;
+}
+
+.mv-tuner {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: min(380px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  background: rgba(10, 12, 16, 0.92);
+  color: #e6f6f4;
+  border: 1px solid rgba(57, 197, 187, 0.4);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  z-index: 10000;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.mv-tuner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mv-tuner-title {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 11px;
+  color: rgba(57, 197, 187, 0.9);
+}
+
+.mv-tuner-close {
+  background: transparent;
+  border: 1px solid rgba(57, 197, 187, 0.5);
+  color: rgba(230, 246, 244, 0.8);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.mv-tuner-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.mv-tuner-label {
+  font-size: 11px;
+  color: rgba(230, 246, 244, 0.7);
+}
+
+.mv-tuner-select {
+  background: rgba(16, 20, 26, 0.8);
+  color: #e6f6f4;
+  border: 1px solid rgba(57, 197, 187, 0.3);
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.mv-tuner-fields {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.mv-tuner-field {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 8px;
+  align-items: center;
+}
+
+.mv-tuner-field-label {
+  font-size: 11px;
+  color: rgba(230, 246, 244, 0.6);
+}
+
+.mv-tuner-input {
+  background: rgba(16, 20, 26, 0.85);
+  color: #e6f6f4;
+  border: 1px solid rgba(57, 197, 187, 0.2);
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.mv-tuner-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.mv-tuner-btn {
+  background: rgba(57, 197, 187, 0.15);
+  border: 1px solid rgba(57, 197, 187, 0.5);
+  color: rgba(230, 246, 244, 0.9);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mv-tuner-empty {
+  font-size: 11px;
+  color: rgba(230, 246, 244, 0.5);
+}

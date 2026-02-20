@@ -1,0 +1,19 @@
+{
+  "name": "nibi",
+  "private": false,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "gsap": "^3.14.2",
+    "mp4-muxer": "^5.2.2",
+    "three": "^0.182.0"
+  }
+}

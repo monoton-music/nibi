@@ -1,0 +1,184 @@
+{
+  "title": "にび",
+  "version": "8.0.0",
+  "bpm": 171,
+  "beatsPerBar": 4,
+  "dawStartBar": 3,
+  "flowLookahead": 0,
+  "colorPalette": {
+    "primary": "#39c5bb",
+    "dark": "#010104"
+  },
+  "endScreen": {
+    "title": "にび"
+  },
+  "scenes": [
+    {
+      "id": "main",
+      "startTime": 0,
+      "duration": 160,
+      "backgroundColor": "#000000",
+      "components": [
+        {
+          "type": "GPUParticleSystem",
+          "params": {
+            "count": 500000,
+            "mode": "flow",
+            "spring": 0.005,
+            "damping": 0.988,
+            "noiseScale": 0.15,
+            "noiseStrength": 0.0003,
+            "pointSize": 0.6,
+            "baseColor": "#ffffff",
+            "textHoldDuration": 1.5,
+            "convUpScale": 3.0,
+            "convDnScale": 2.0
+          }
+        }
+      ],
+      "camera": {
+        "mode": "path",
+        "position": [0, 0, 10],
+        "lookAt": [0, 0, 0],
+        "fov": 38,
+        "near": 0.1,
+        "far": 100,
+        "keyframes": [
+          { "time": 0,     "position": [0, 0, 10],         "lookAt": [0, 0, 0],       "duration": 4,   "easing": "power2.out",   "fov": 38 },
+          { "time": 4,     "position": [0, 0.3, 7],        "lookAt": [0, 0, 0],       "duration": 3.5, "easing": "power2.inOut", "fov": 44 },
+
+          { "time": 7.5,   "position": [0, 0.3, 6],        "lookAt": [0, 0.2, 0],     "duration": 2.5, "easing": "power2.out",   "fov": 46 },
+          { "time": 10,    "position": [0.8, 0, 5.5],      "lookAt": [0.4, 0, 0],     "duration": 1.5, "easing": "power2.inOut", "fov": 48 },
+          { "time": 11.5,  "position": [-0.6, -0.1, 6],    "lookAt": [-0.5, -0.1, 0], "duration": 1.5, "easing": "power2.inOut", "fov": 46 },
+          { "time": 13,    "position": [0, -0.3, 5.5],     "lookAt": [0, -0.3, 0],    "duration": 1.5, "easing": "power2.out",   "fov": 49 },
+          { "time": 14.5,  "position": [0.2, 0.1, 5],      "lookAt": [0, 0, 0],       "duration": 2,   "easing": "power1.inOut", "fov": 50 },
+
+          { "time": 16.5,  "position": [0, 0, 7.5],        "lookAt": [0, 0, 0],       "duration": 1.5, "easing": "power3.in",    "fov": 42 },
+          { "time": 18,    "position": [-0.5, 0.3, 5.5],   "lookAt": [-1.0, 0.2, 0],  "duration": 1.5, "easing": "power3.out",   "fov": 50, "roll": -0.02 },
+
+          { "time": 19.5,  "position": [-0.3, 0.1, 5],     "lookAt": [-0.8, 0, 0],    "duration": 2.5, "easing": "power2.inOut", "fov": 52, "roll": -0.015 },
+          { "time": 22,    "position": [-0.6, -0.2, 5.5],   "lookAt": [-0.6, -0.2, 0], "duration": 2.5, "easing": "power2.inOut", "fov": 50, "roll": 0 },
+          { "time": 24.5,  "position": [-0.2, 0.3, 5],     "lookAt": [-0.5, 0.1, 0],  "duration": 2.5, "easing": "power1.inOut", "fov": 51, "roll": 0.01 },
+
+          { "time": 27,    "position": [1.0, 0, 6],        "lookAt": [0.8, 0, 0],     "duration": 2.5, "easing": "power2.out",   "fov": 44, "roll": 0 },
+
+          { "time": 29.5,  "position": [0, 0.2, 8],        "lookAt": [0, 0, 0],       "duration": 3,   "easing": "power2.out",   "fov": 40 },
+          { "time": 32.5,  "position": [1.0, 0.5, 5],      "lookAt": [0.2, 0.1, 0],   "duration": 3,   "easing": "power2.inOut", "fov": 52, "roll": 0.02 },
+          { "time": 35.5,  "position": [-0.5, -0.3, 6],    "lookAt": [-0.1, -0.1, 0], "duration": 3,   "easing": "power2.inOut", "fov": 46, "roll": -0.015 },
+          { "time": 38.5,  "position": [0, 0.4, 4.5],      "lookAt": [0, 0.1, 0],     "duration": 3,   "easing": "power2.out",   "fov": 55, "roll": 0 },
+          { "time": 41.5,  "position": [-0.6, 0, 5.5],     "lookAt": [-0.2, 0, 0],    "duration": 3,   "easing": "power2.inOut", "fov": 48, "roll": 0.01 },
+          { "time": 44.5,  "position": [0.5, -0.2, 5],     "lookAt": [0.1, -0.1, 0],  "duration": 2.5, "easing": "power2.inOut", "fov": 50, "roll": -0.02 },
+          { "time": 47,    "position": [0, 0, 6.5],        "lookAt": [0, 0, 0],       "duration": 2.5, "easing": "power1.inOut", "fov": 46, "roll": 0 },
+          { "time": 49.5,  "position": [0.7, 0.3, 4.5],    "lookAt": [0.2, 0.1, 0],   "duration": 3,   "easing": "power2.out",   "fov": 55, "roll": 0.015 },
+
+          { "time": 52.5,  "position": [0, 0.3, 5],        "lookAt": [0, 0.1, 0],     "duration": 1.8, "easing": "power2.out",   "fov": 50 },
+          { "time": 54.3,  "position": [-0.5, -0.1, 4.5],  "lookAt": [-0.2, -0.1, 0], "duration": 1.8, "easing": "power3.inOut", "fov": 53 },
+          { "time": 56.1,  "position": [0.6, 0.2, 5],      "lookAt": [0.3, 0.1, 0],   "duration": 1.5, "easing": "power3.inOut", "fov": 50 },
+          { "time": 57.6,  "position": [0, -0.3, 4.5],     "lookAt": [0, -0.2, 0],    "duration": 1.5, "easing": "power2.out",   "fov": 53 },
+          { "time": 59.1,  "position": [-0.3, 0.1, 5],     "lookAt": [-0.2, 0, 0],    "duration": 2,   "easing": "power2.inOut", "fov": 50 },
+
+          { "time": 61.1,  "position": [0, 0, 7],          "lookAt": [0, 0, 0],       "duration": 2,   "easing": "power2.in",    "fov": 44 },
+          { "time": 63.1,  "position": [-0.6, 0.3, 5.5],   "lookAt": [-0.8, 0.1, 0],  "duration": 2,   "easing": "power3.out",   "fov": 50, "roll": -0.02 },
+          { "time": 65.1,  "position": [-0.3, 0, 5],       "lookAt": [-0.6, -0.1, 0], "duration": 2.5, "easing": "power2.inOut", "fov": 52, "roll": -0.01 },
+          { "time": 67.6,  "position": [-0.7, -0.3, 5.5],  "lookAt": [-0.5, -0.2, 0], "duration": 2.5, "easing": "power2.inOut", "fov": 50, "roll": 0 },
+          { "time": 70.1,  "position": [-0.2, 0.2, 6],     "lookAt": [-0.3, 0.1, 0],  "duration": 2.5, "easing": "power1.inOut", "fov": 48, "roll": 0.01 },
+
+          { "time": 72.6,  "position": [0, 0.4, 5.5],      "lookAt": [0, 0.1, 0],     "duration": 2.5, "easing": "power2.out",   "fov": 48, "roll": 0 },
+          { "time": 75.1,  "position": [0.5, -0.3, 5],     "lookAt": [0.2, -0.1, 0],  "duration": 2.5, "easing": "power2.inOut", "fov": 50, "roll": 0.015 },
+          { "time": 77.6,  "position": [-0.4, 0.2, 4.5],   "lookAt": [-0.2, 0.1, 0],  "duration": 2.5, "easing": "power2.inOut", "fov": 52, "roll": -0.01 },
+          { "time": 80.1,  "position": [0.3, -0.1, 5.5],   "lookAt": [0.1, 0, 0],     "duration": 2.5, "easing": "power2.inOut", "fov": 48, "roll": 0 },
+          { "time": 82.6,  "position": [-0.3, 0.3, 5],     "lookAt": [-0.1, 0.1, 0],  "duration": 2.5, "easing": "power2.inOut", "fov": 50, "roll": 0.015 },
+          { "time": 85.1,  "position": [0.2, -0.2, 4.5],   "lookAt": [0, -0.1, 0],    "duration": 2.5, "easing": "power2.inOut", "fov": 52, "roll": -0.01 },
+          { "time": 87.6,  "position": [-0.2, 0.1, 5],     "lookAt": [0, 0, 0],       "duration": 2.5, "easing": "power2.out",   "fov": 50, "roll": 0 },
+
+          { "time": 90.1,  "position": [0, 0.2, 5.5],      "lookAt": [0, 0, 0],       "duration": 2,   "easing": "power2.out",   "fov": 48 },
+          { "time": 92.1,  "position": [0, 0, 5],          "lookAt": [0, 0, 0],       "duration": 2.5, "easing": "power2.inOut", "fov": 50 },
+          { "time": 94.6,  "position": [0, 0, 4.5],        "lookAt": [0, 0, 0],       "duration": 2.4, "easing": "power2.in",    "fov": 52 },
+
+          { "time": 97,    "position": [-0.5, 0.4, 5],     "lookAt": [-0.7, 0.2, 0],  "duration": 2.5, "easing": "power3.out",   "fov": 50, "roll": -0.025 },
+          { "time": 99.5,  "position": [-0.3, 0.1, 4.5],   "lookAt": [-0.5, 0, 0],    "duration": 2,   "easing": "power2.inOut", "fov": 54, "roll": -0.015 },
+          { "time": 101.5, "position": [-0.7, -0.1, 5],    "lookAt": [-0.5, -0.1, 0], "duration": 2,   "easing": "power3.inOut", "fov": 52, "roll": 0.01 },
+          { "time": 103.5, "position": [-0.2, -0.3, 4.5],  "lookAt": [-0.4, -0.2, 0], "duration": 2.5, "easing": "power2.out",   "fov": 55, "roll": 0 },
+          { "time": 106,   "position": [-0.5, 0.3, 5],     "lookAt": [-0.6, 0.1, 0],  "duration": 2.5, "easing": "power2.inOut", "fov": 52, "roll": -0.02 },
+          { "time": 108.5, "position": [-0.3, 0.5, 4.5],   "lookAt": [-0.4, 0.2, 0],  "duration": 2.5, "easing": "power2.inOut", "fov": 54, "roll": -0.01 },
+          { "time": 111,   "position": [-0.6, 0, 4],       "lookAt": [-0.3, 0, 0],    "duration": 2.5, "easing": "power2.out",   "fov": 56, "roll": 0 },
+          { "time": 113.5, "position": [-0.2, -0.2, 4],    "lookAt": [-0.2, -0.1, 0], "duration": 3,   "easing": "power2.inOut", "fov": 56, "roll": 0.015 },
+
+          { "time": 116.5, "position": [0, 0, 5],          "lookAt": [0, 0, 0],       "duration": 2.5, "easing": "power2.in",    "fov": 50, "roll": 0 },
+          { "time": 119,   "position": [0, 0.2, 6.5],      "lookAt": [0, 0, 0],       "duration": 3,   "easing": "power2.inOut", "fov": 46 },
+          { "time": 122,   "position": [0.5, 0.3, 7],      "lookAt": [0.1, 0.1, 0],   "duration": 3,   "easing": "power2.inOut", "fov": 44 },
+          { "time": 125,   "position": [-0.3, -0.1, 8],    "lookAt": [0, 0, 0],       "duration": 3,   "easing": "power2.inOut", "fov": 40 },
+          { "time": 128,   "position": [0, 0.2, 6.5],      "lookAt": [0, 0, 0],       "duration": 3,   "easing": "power2.inOut", "fov": 44 },
+          { "time": 131,   "position": [0.3, 0, 8],        "lookAt": [0, 0, 0],       "duration": 3,   "easing": "power2.inOut", "fov": 40 },
+          { "time": 134,   "position": [0, 0.1, 7],        "lookAt": [0, 0, 0],       "duration": 3,   "easing": "power2.inOut", "fov": 42 },
+          { "time": 137,   "position": [-0.2, 0, 9],       "lookAt": [0, 0, 0],       "duration": 4,   "easing": "power1.inOut", "fov": 38 },
+          { "time": 141,   "position": [0, 0, 11],         "lookAt": [0, 0, 0],       "duration": 5,   "easing": "power1.inOut", "fov": 36 }
+        ]
+      },
+      "transitions": {}
+    }
+  ],
+  "lyrics": [
+    { "bar": 3, "text": "", "mode": "flow", "pattern": "flowingSilk" },
+
+    { "bar": "8.3",  "text": "晴れた窓拭く",    "animation": "waveReveal",  "origin": [0,    0.5],  "targetWidth": 5.5, "convUp": 0.04, "groupBPattern": "flowingSilk", "groupBConvergence": 0.25 },
+    { "bar": "10.4", "text": "空",              "animation": "riseUp",      "origin": [1.5,  0.1],  "targetWidth": 4.0, "viewDirection": [0.25, 0.1, 0.96], "convUp": 0.02, "groupBPattern": "auroraCurtain", "groupBConvergence": 0.25 },
+    { "bar": "11.4", "text": "鈍色",            "animation": "scatterIn",   "origin": [-1.5, -0.2], "targetWidth": 4.5, "viewDirection": [0.1, 0.08, 0.99], "convUp": 0.008, "groupBPattern": "perlinFlow3d", "groupBConvergence": 0.25 },
+    { "bar": "12.4", "text": "堪えた指から",    "animation": "rainDrop",    "origin": [0,    -0.6], "targetWidth": 6.0, "convUp": 0.02, "dissolveMode": "down", "groupBPattern": "ripplePool", "groupBConvergence": 0.25 },
+    { "bar": "14.3", "text": "細くなぞっていく","animation": "typewriter",  "origin": [0.5,  0.3],  "targetWidth": 7.0, "convUp": 0.04, "groupBPattern": "flowField", "groupBConvergence": 0.25 },
+
+    { "bar": 16, "text": "", "mode": "flow", "pattern": "fractalTree" },
+
+    { "bar": "17.1", "text": "硬い街叩く",           "animation": "directSnap",   "align": "left", "origin": [-3.0,  0.7],  "targetWidth": 5.5, "spring": 0.05, "convUp": 0.12, "lerpRate": 0.06, "groupBPattern": "cubeWave", "groupBConvergence": 0.35 },
+    { "bar": "18.1", "text": "跳ね返ったかげが",     "animation": "scatterIn",    "align": "left", "origin": [-3.0,  0.2],  "targetWidth": 6.5, "spring": 0.05, "convUp": 0.12, "lerpRate": 0.06, "groupBPattern": "pendulumWave", "groupBConvergence": 0.35 },
+    { "bar": "19.1", "text": "知らない道願って巡る",  "animation": "spiralPerChar", "align": "left", "origin": [-3.0, -0.4],  "targetWidth": 7.5, "spring": 0.05, "convUp": 0.12, "lerpRate": 0.06, "groupBPattern": "rollingWave", "groupBConvergence": 0.35 },
+    { "bar": "21.1", "text": "数えた玉さらう",       "animation": "ringToChar",   "align": "left", "origin": [-3.0, -0.8],  "targetWidth": 6.0, "spring": 0.05, "convUp": 0.12, "lerpRate": 0.06, "groupBPattern": "galaxySpin", "groupBConvergence": 0.35 },
+    { "bar": "22.1", "text": "つまづいた霧が",       "animation": "gridDissolve", "align": "left", "origin": [-3.0,  0.7],  "targetWidth": 6.0, "spring": 0.05, "convUp": 0.12, "lerpRate": 0.06, "dissolveMode": "down", "groupBPattern": "perlinFlow3d", "groupBConvergence": 0.30 },
+    { "bar": 24,     "text": "眠る",                "animation": "directSnap", "origin": [1.5,  0.0], "targetWidth": 5.5, "particleGroup": 1, "holdDuration": 2.5, "dissolveMode": "down", "gravity": 0.0006, "damping": 0.965, "convUp": 0.001, "convDn": 0.003, "lerpRate": 0.06, "maxConvergence": 0.60, "viewDirection": [0.3, 0.0, 0.95] },
+
+    { "bar": 25, "text": "", "mode": "flow", "pattern": "randomWalk", "gravity": 0.001, "damping": 0.960, "noiseStrength": 0.0012, "noiseScale": 0.18, "wave": 0.0005, "lerpRate": 0.04 },
+    { "bar": 31, "text": "", "mode": "flow", "pattern": "cubeWave",     "spring": 0.15, "noiseStrength": 0.0002, "vortex": 0.0002, "convUp": 0.7, "lerpRate": 0.08 },
+    { "bar": 35, "text": "", "mode": "flow", "pattern": "pendulumWave", "spring": 0.15, "noiseStrength": 0.0002, "vortex": 0.0002, "convUp": 0.7, "lerpRate": 0.08 },
+
+    { "bar": "40.3", "text": "開花",          "animation": "centerBurst", "origin": [0,    0.5],  "targetWidth": 5.5, "convUp": 0.30, "lerpRate": 0.08, "holdDuration": 1.2, "releaseSpeed": 1.5, "groupBPattern": "galaxySpin", "groupBConvergence": 0.40 },
+    { "bar": "41.3", "text": "真夜中",         "animation": "columnDrop",  "origin": [-1.0, -0.2], "targetWidth": 5.5, "convUp": 0.30, "lerpRate": 0.08, "holdDuration": 1.2, "dissolveMode": "down", "groupBPattern": "auroraCurtain", "groupBConvergence": 0.35 },
+    { "bar": "42.4", "text": "空",             "animation": "riseUp",      "origin": [1.5,  0.3],  "targetWidth": 4.0, "convUp": 0.30, "lerpRate": 0.08, "holdDuration": 1.2, "groupBPattern": "flowField", "groupBConvergence": 0.30 },
+    { "bar": "43.4", "text": "ハイドロ",       "animation": "rainDrop",    "origin": [0,   -0.5],  "targetWidth": 5.5, "convUp": 0.30, "lerpRate": 0.08, "holdDuration": 1.2, "dissolveMode": "down", "releaseSpeed": 1.5, "groupBPattern": "vortexDrain", "groupBConvergence": 0.40 },
+    { "bar": "44.4", "text": "荒れたあの川",   "animation": "waveReveal",  "origin": [-0.5, 0.2],  "targetWidth": 7.0, "convUp": 0.30, "lerpRate": 0.08, "holdDuration": 1.2, "groupBPattern": "orbiting", "groupBConvergence": 0.45 },
+    { "bar": "46.3", "text": "遠く伸びていく", "animation": "flatPlane",   "origin": [0.5, -0.3],  "targetWidth": 7.0, "convUp": 0.30, "lerpRate": 0.08, "groupBPattern": "flowingSilk", "groupBConvergence": 0.30 },
+
+    { "bar": 48, "text": "", "mode": "flow", "pattern": "kochCurve" },
+
+    { "bar": "49.1", "text": "絡まった行き先",   "animation": "tornado",        "align": "left", "origin": [-3.0,  0.7],  "targetWidth": 7.0, "spring": 0.06, "convUp": 0.04, "groupBPattern": "kochCurve", "groupBConvergence": 0.30 },
+    { "bar": "50.1", "text": "ささやいた星が",   "animation": "phyllotaxis",    "align": "left", "origin": [-3.0,  0.1],  "targetWidth": 6.5, "spring": 0.06, "convUp": 0.04, "groupBPattern": "auroraCurtain", "groupBConvergence": 0.25 },
+    { "bar": "51.1", "text": "連なった波弾けた", "animation": "waveReveal",     "align": "left", "origin": [-3.0, -0.4],  "targetWidth": 7.0, "spring": 0.06, "convUp": 0.04, "dissolveMode": "down", "groupBPattern": "rollingWave", "groupBConvergence": 0.30 },
+    { "bar": "53.1", "text": "転がった雷",       "animation": "shockwaveRing",  "align": "left", "origin": [-3.0, -0.8],  "targetWidth": 5.5, "spring": 0.06, "convUp": 0.04, "releaseSpeed": 2.0, "groupBPattern": "vortexDrain", "groupBConvergence": 0.35 },
+    { "bar": "54.1", "text": "錆びついた丘が",   "animation": "gridDissolve",   "align": "left", "origin": [-3.0,  0.5],  "targetWidth": 6.5, "spring": 0.06, "convUp": 0.04, "dissolveMode": "down", "groupBPattern": "perlinFlow3d", "groupBConvergence": 0.25 },
+
+    { "bar": 55, "text": "", "mode": "flow", "pattern": "branchTree" },
+
+    { "bar": "56.1", "text": "濡れた", "animation": "scatterIn",   "particleGroup": 0, "origin": [0,  0.6], "targetWidth": 5.5, "holdDuration": 2.5, "convUp": 0.003, "spring": 0.002, "lerpRate": 0.008, "maxConvergence": 0.70, "dissolveMode": "down" },
+    { "bar": "58.1", "text": "靴の",   "animation": "riseUp",      "particleGroup": 1, "origin": [0, -0.5], "targetWidth": 5.5, "holdDuration": 2.5, "convUp": 0.003, "spring": 0.002, "lerpRate": 0.008, "maxConvergence": 0.70, "dissolveMode": "down" },
+    { "bar": 60,     "text": "跡が",   "animation": "rainDrop",    "particleGroup": 0, "origin": [0,  0.6], "targetWidth": 5.5, "holdDuration": 2.5, "convUp": 0.003, "spring": 0.002, "lerpRate": 0.008, "maxConvergence": 0.70, "dissolveMode": "down", "groupBPattern": "ripplePool", "groupBConvergence": 0.15 },
+    { "bar": 62,     "text": "足を",   "animation": "columnDrop",  "particleGroup": 1, "origin": [0, -0.5], "targetWidth": 5.5, "holdDuration": 2.5, "convUp": 0.003, "spring": 0.002, "lerpRate": 0.008, "maxConvergence": 0.70, "dissolveMode": "down" },
+    { "bar": 64,     "text": "止めた", "animation": "flatPlane",   "particleGroup": 0, "origin": [0,  0.6], "targetWidth": 5.5, "holdDuration": 2.5, "convUp": 0.003, "spring": 0.002, "lerpRate": 0.008, "maxConvergence": 0.70, "dissolveMode": "down", "groupBPattern": "breathingSphere", "groupBConvergence": 0.15 },
+    { "bar": 66,     "text": "朝の",   "animation": "waveReveal",  "particleGroup": 1, "origin": [0, -0.5], "targetWidth": 5.5, "holdDuration": 2.0, "convUp": 0.003, "spring": 0.002, "lerpRate": 0.008, "maxConvergence": 0.70, "dissolveMode": "down" },
+    { "bar": "68.1", "text": "底が冷えてきて",   "animation": "columnDrop",    "origin": [0,   0.3], "targetWidth": 6.5, "convUp": 0.02, "dissolveMode": "down", "groupBPattern": "perlinFlow3d", "groupBConvergence": 0.25 },
+    { "bar": "70.3", "text": "それじゃさよなら", "animation": "sphereContract", "origin": [0,   0.0], "holdDuration": 2.5, "targetWidth": 4.5, "convUp": 0.01, "groupBPattern": "breathingSphere", "groupBConvergence": 0.35 },
+
+    { "bar": "72.2", "text": "遠い日も鳴らす",      "animation": "waveReveal",    "align": "left", "origin": [-3.0,  0.8], "targetWidth": 7.0, "convUp": 0.01, "groupBPattern": "ripplePool",  "groupBConvergence": 0.30 },
+    { "bar": "75.2", "text": "岸で消えた",          "animation": "scatterIn",     "align": "left", "origin": [-3.0,  0.3], "targetWidth": 6.0, "convUp": 0.01, "dissolveMode": "down", "groupBPattern": "flowField", "groupBConvergence": 0.35 },
+    { "bar": "76.4", "text": "風船と探した",        "animation": "riseUp",        "align": "left", "origin": [-3.0, -0.2], "targetWidth": 6.5, "convUp": 0.01, "groupBPattern": "breathingSphere", "groupBConvergence": 0.35 },
+    { "bar": "78.4", "text": "わたあめ雲",          "animation": "ringToChar",    "align": "left", "origin": [-3.0, -0.7], "targetWidth": 6.0, "convUp": 0.01, "groupBPattern": "galaxySpin",  "groupBConvergence": 0.35 },
+    { "bar": "80.3", "text": "明日また",            "animation": "spiralPerChar", "align": "left", "origin": [-3.0,  0.8], "targetWidth": 5.5, "convUp": 0.01, "groupBPattern": "auroraCurtain", "groupBConvergence": 0.30 },
+    { "bar": "82.4", "text": "曲がった角で待ってる", "animation": "typewriter",    "align": "left", "origin": [-3.0,  0.2], "targetWidth": 8.0, "convUp": 0.01, "groupBPattern": "cubeWave", "groupBConvergence": 0.35 },
+    { "bar": "85.4", "text": "流れる声を見たよ",    "animation": "rainDrop",      "align": "left", "origin": [-3.0, -0.4], "targetWidth": 7.5, "holdDuration": 3.0, "convUp": 0.01, "dissolveMode": "down", "groupBPattern": "vortexDrain", "groupBConvergence": 0.40 },
+
+    { "bar": 89,  "text": "", "mode": "flow", "pattern": "galaxySpin",   "lerpRate": 0.04 },
+    { "bar": 93,  "text": "", "mode": "flow", "pattern": "auroraCurtain","lerpRate": 0.04 },
+    { "bar": 97,  "text": "", "mode": "flow", "pattern": "flowField",    "lerpRate": 0.04 },
+    { "bar": 100, "text": "", "mode": "flow", "pattern": "perlinFlow3d", "lerpRate": 0.04 },
+    { "bar": 103, "text": "", "mode": "flow", "pattern": "organic" }
+  ],
+  "events": []
+}
