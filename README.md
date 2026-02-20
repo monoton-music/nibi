@@ -8,6 +8,8 @@ Source code for a WebGPU particle music video. Particles arrange into Japanese l
 
 MV本編 (Niconico): https://www.nicovideo.jp/watch/sm45971593
 
+![Explore mode](docs/explore-mode.png)
+
 ## Stack
 
 - [Three.js](https://threejs.org/) r182 — WebGPU / WebGL 2 renderer
