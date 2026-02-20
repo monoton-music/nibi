@@ -1,10 +1,12 @@
 # nibi
 
-WebGPU パーティクル MV のソースコード。
+WebGPU パーティクル MV のソースコードです。
 
-粒子が日本語歌詞テキストを3D空間に配置し、フローのパターンへ遷移する。Three.js WebGPU + TSL compute shader で実装。
+粒子が日本語歌詞テキストの形状にしたがって3D空間に配置し、パターンへと遷移します。Three.js WebGPU + TSL compute shader で実装しています。
 
 Source code for a WebGPU particle music video. Particles arrange into Japanese lyrics in 3D space — readable only from the authored camera angle — and transition into flow patterns. Built on Three.js WebGPU with TSL compute shaders.
+
+Demo: https://monotonmusic.com/nibi/
 
 MV本編 (Niconico): https://www.nicovideo.jp/watch/sm45971593
 
@@ -27,7 +29,7 @@ npm install
 npm run dev
 ```
 
-WebGPU 対応ブラウザで最適に動作。非対応の場合は WebGL 2 にフォールバック。
+WebGPU 対応ブラウザで最適に動作します。非対応の場合は WebGL 2 にフォールバックします。
 
 Best experienced on WebGPU-capable browsers. Falls back to WebGL 2 when unavailable.
 
