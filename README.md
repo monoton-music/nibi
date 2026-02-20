@@ -2,7 +2,7 @@
 
 WebGPU パーティクル MV のソースコード。
 
-粒子が日本語歌詞テキストを3D空間に配置し（特定のカメラ角度からのみ読める）、フローパターンへ遷移する。Three.js WebGPU + TSL compute shader で実装。
+粒子が日本語歌詞テキストを3D空間に配置し、フローのパターンへ遷移する。Three.js WebGPU + TSL compute shader で実装。
 
 Source code for a WebGPU particle music video. Particles arrange into Japanese lyrics in 3D space — readable only from the authored camera angle — and transition into flow patterns. Built on Three.js WebGPU with TSL compute shaders.
 
