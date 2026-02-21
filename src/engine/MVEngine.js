@@ -1559,8 +1559,7 @@ export class MVEngine {
                     this._disableBreakdown();
                 }
             } else {
-                this._showPauseOverlay();
-                // Always show breakdown UI when paused
+                // Always show breakdown UI when paused (has its own play/pause button)
                 if (!this._breakdownMode) {
                     this._breakdownMode = true;
                     this._enableBreakdown();
@@ -2906,15 +2905,8 @@ export class MVEngine {
         this._updateBdControlsText();
         this._populateSeekbarMarkers();
 
-        // Mobile: hide seekbar track/time/volume/log, keep back+play buttons visible
+        // Mobile: hide volume/log, keep seekbar + back/play buttons visible
         if (this._isMobileDevice) {
-            const seekWrap = ui.querySelector('.mv-bd-seekbar-wrap');
-            seekWrap.querySelector('.mv-bd-seekbar-track').style.display = 'none';
-            seekWrap.querySelector('.mv-bd-seekbar-time').style.display = 'none';
-            const volB = seekWrap.querySelector('.mv-bd-vol-btn');
-            if (volB) volB.style.display = 'none';
-            const volS = seekWrap.querySelector('.mv-bd-vol-slider');
-            if (volS) volS.style.display = 'none';
             ui.querySelector('.mv-bd-log').style.display = 'none';
 
             const controls = ui.querySelector('.mv-bd-controls');
