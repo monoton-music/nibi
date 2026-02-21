@@ -2690,20 +2690,12 @@ export class MVEngine {
         this._createBreakdownUI();
         this._hookComponentLogs();
 
-        // Mobile: double-tap to return to start screen
+        // Mobile: suppress browser double-tap zoom on canvas
         if (this._isMobileDevice && this.sceneManager.renderer) {
-            this._bdLastTap = 0;
-            this._bdDoubleTapHandler = (e) => {
-                if (e.touches.length > 0) return;          // マルチタッチ操作中
-                if (e.changedTouches.length !== 1) return;  // 複数指同時離し
-                const now = Date.now();
-                if (now - this._bdLastTap < 300) {
-                    e.preventDefault();
-                    this._replay();
-                }
-                this._bdLastTap = now;
-            };
-            this.sceneManager.renderer.domElement.addEventListener('touchend', this._bdDoubleTapHandler);
+            this._bdTouchPreventHandler = (e) => { e.preventDefault(); };
+            this.sceneManager.renderer.domElement.addEventListener(
+                'touchstart', this._bdTouchPreventHandler, { passive: false }
+            );
         }
 
         // Create camera frustum visualization (always on in explore mode)
@@ -2762,10 +2754,10 @@ export class MVEngine {
             this.sceneManager.cameraController.mode = this._prevCameraMode;
         }
 
-        // Clean up mobile double-tap handler
-        if (this._bdDoubleTapHandler && this.sceneManager.renderer) {
-            this.sceneManager.renderer.domElement.removeEventListener('touchend', this._bdDoubleTapHandler);
-            this._bdDoubleTapHandler = null;
+        // Clean up mobile touchstart preventDefault handler
+        if (this._bdTouchPreventHandler && this.sceneManager.renderer) {
+            this.sceneManager.renderer.domElement.removeEventListener('touchstart', this._bdTouchPreventHandler);
+            this._bdTouchPreventHandler = null;
         }
 
         // Clean up path break handler
@@ -2811,6 +2803,7 @@ export class MVEngine {
                 </div>
             </div>
             <div class="mv-bd-seekbar-wrap">
+                <button class="mv-bd-back" aria-label="back to start"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
                 <button class="mv-bd-playpause" aria-label="play/pause"><svg class="mv-bd-pp-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg></button>
                 <div class="mv-bd-seekbar-track">
                     <input type="range" class="mv-bd-seekbar" min="0" max="160" step="0.1" value="0">
@@ -2847,6 +2840,15 @@ export class MVEngine {
             this._bdSeeking = false;
             this.seekToTime(parseFloat(seekbar.value));
         });
+
+        // Back to start button
+        const backBtn = ui.querySelector('.mv-bd-back');
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this._replay();
+            });
+        }
 
         // Play/pause button
         const ppBtn = ui.querySelector('.mv-bd-playpause');
@@ -2904,9 +2906,15 @@ export class MVEngine {
         this._updateBdControlsText();
         this._populateSeekbarMarkers();
 
-        // Mobile: hide seekbar/log, merge controls into left-top
+        // Mobile: hide seekbar track/time/volume/log, keep back+play buttons visible
         if (this._isMobileDevice) {
-            ui.querySelector('.mv-bd-seekbar-wrap').style.display = 'none';
+            const seekWrap = ui.querySelector('.mv-bd-seekbar-wrap');
+            seekWrap.querySelector('.mv-bd-seekbar-track').style.display = 'none';
+            seekWrap.querySelector('.mv-bd-seekbar-time').style.display = 'none';
+            const volB = seekWrap.querySelector('.mv-bd-vol-btn');
+            if (volB) volB.style.display = 'none';
+            const volS = seekWrap.querySelector('.mv-bd-vol-slider');
+            if (volS) volS.style.display = 'none';
             ui.querySelector('.mv-bd-log').style.display = 'none';
 
             const controls = ui.querySelector('.mv-bd-controls');
@@ -3150,6 +3158,19 @@ export class MVEngine {
                     transition: color 0.15s;
                 }
                 .mv-bd-playpause:hover { color: rgba(0, 0, 0, 0.9); }
+                .mv-bd-back {
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    margin: 0;
+                    cursor: pointer;
+                    color: rgba(0, 0, 0, 0.6);
+                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    transition: color 0.15s;
+                }
+                .mv-bd-back:hover { color: rgba(0, 0, 0, 0.9); }
                 .mv-bd-vol-btn {
                     background: none;
                     border: none;
