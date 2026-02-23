@@ -2200,21 +2200,20 @@ export class MVEngine {
             }
         }
 
-        // Active segment line (2 points: start keyframe → end keyframe, updated per frame)
-        const segPositions = new Float32Array(2 * 3);
-        const segGeo = new THREE.BufferGeometry();
-        segGeo.setAttribute('position', new THREE.BufferAttribute(segPositions, 3));
-        const segMat = new THREE.LineBasicMaterial({
+        // Active segment line (cylinder mesh for visible thickness)
+        const segGeo = new THREE.CylinderGeometry(0.008, 0.008, 1, 6, 1);
+        segGeo.translate(0, 0.5, 0); // pivot at bottom
+        segGeo.rotateX(Math.PI / 2); // align along Z
+        const segMat = new THREE.MeshBasicMaterial({
             color: 0x00ffff, // PP inverts → red
-            linewidth: 3,
             transparent: true,
             opacity: 0.9,
             depthTest: false,
             depthWrite: false
         });
-        const segLine = new THREE.Line(segGeo, segMat);
+        const segLine = new THREE.Mesh(segGeo, segMat);
         segLine.name = 'pathLine';
-        segLine.renderOrder = 999;
+        segLine.renderOrder = -1;
         segLine.visible = false;
         group.add(segLine);
 
@@ -2237,7 +2236,7 @@ export class MVEngine {
         const mkStart = new THREE.Mesh(sphereGeo, mkMat.clone());
         const mkEnd = new THREE.Mesh(sphereGeo, mkMat);
         mkStart.name = 'segStart'; mkEnd.name = 'segEnd';
-        mkStart.renderOrder = 1000; mkEnd.renderOrder = 1000;
+        mkStart.renderOrder = -1; mkEnd.renderOrder = -1;
         mkStart.visible = false; mkEnd.visible = false;
         group.add(mkStart); group.add(mkEnd);
 
@@ -2251,7 +2250,7 @@ export class MVEngine {
             depthWrite: false
         });
         const cursor = new THREE.Mesh(cursorGeo, cursorMat);
-        cursor.renderOrder = 1001;
+        cursor.renderOrder = -1;
         cursor.name = 'pathCursor';
         cursor.visible = false;
         group.add(cursor);
@@ -2317,12 +2316,18 @@ export class MVEngine {
                 const endY = from.pos.y + (to.pos.y - from.pos.y) * t;
                 const endZ = from.pos.z + (to.pos.z - from.pos.z) * t;
 
-                const arr = line.geometry.attributes.position.array;
-                arr[0] = from.pos.x; arr[1] = from.pos.y; arr[2] = from.pos.z;
-                arr[3] = endX;        arr[4] = endY;        arr[5] = endZ;
-                line.geometry.attributes.position.needsUpdate = true;
-                line.material.color.setHex(segColor);
-                line.visible = true;
+                // Position cylinder from start → animated end
+                const dir = new THREE.Vector3(endX - from.pos.x, endY - from.pos.y, endZ - from.pos.z);
+                const len = dir.length();
+                if (len > 0.001) {
+                    line.position.copy(from.pos);
+                    line.scale.set(1, 1, len);
+                    line.lookAt(endX, endY, endZ);
+                    line.material.color.setHex(segColor);
+                    line.visible = true;
+                } else {
+                    line.visible = false;
+                }
 
                 if (mkStart) { mkStart.position.copy(from.pos); mkStart.material.color.setHex(segColor); mkStart.visible = true; }
                 if (mkEnd) { mkEnd.position.set(endX, endY, endZ); mkEnd.material.color.setHex(segColor); mkEnd.visible = t >= 1.0; }
@@ -2362,7 +2367,7 @@ export class MVEngine {
         const edgesGeo = new THREE.EdgesGeometry(boxGeo);
         const boxLines = new THREE.LineSegments(edgesGeo, lineMat);
         boxLines.name = 'frustumBody';
-        boxLines.renderOrder = 1002;
+        boxLines.renderOrder = -1;
         group.add(boxLines);
         boxGeo.dispose();
 
@@ -2372,7 +2377,7 @@ export class MVEngine {
         pyramidGeo.setAttribute('position', new THREE.BufferAttribute(pyramidPositions, 3));
         const pyramidLines = new THREE.LineSegments(pyramidGeo, lineMat);
         pyramidLines.name = 'frustumPyramid';
-        pyramidLines.renderOrder = 1002;
+        pyramidLines.renderOrder = -1;
         group.add(pyramidLines);
 
         // Near plane rectangle (4 lines)
@@ -2381,7 +2386,7 @@ export class MVEngine {
         nearGeo.setAttribute('position', new THREE.BufferAttribute(nearPositions, 3));
         const nearLines = new THREE.LineSegments(nearGeo, lineMat);
         nearLines.name = 'frustumNear';
-        nearLines.renderOrder = 1002;
+        nearLines.renderOrder = -1;
         group.add(nearLines);
 
         // Near plane preview mesh (textured quad showing authored camera view)
@@ -2409,7 +2414,7 @@ export class MVEngine {
         });
         const planeMesh = new THREE.Mesh(planeGeo, planeMat);
         planeMesh.name = 'frustumPreview';
-        planeMesh.renderOrder = 1001;
+        planeMesh.renderOrder = -2;
         group.add(planeMesh);
 
         // Status label (HTML overlay, screen-space — constant size)
@@ -2490,7 +2495,7 @@ export class MVEngine {
                     this._bdFrustumLabel.style.left = x + 'px';
                     this._bdFrustumLabel.style.top = (y - 16) + 'px';
                     this._bdFrustumLabel.style.transform = 'translateX(-50%)';
-                    this._bdFrustumLabel.style.color = ppOn ? '#000' : '#fff';
+                    this._bdFrustumLabel.style.color = '#f00';
 
                     // Find current keyframe movement and progress within it
                     const kfs = cc.keyframes;
