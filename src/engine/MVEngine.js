@@ -2137,8 +2137,21 @@ export class MVEngine {
             this._bdPathBreakHandler = () => {
                 if (this._followingAuthoredPath) {
                     this._followingAuthoredPath = false;
-                    if (this._orbitControls) this._orbitControls.enabled = true;
                     if (cc) cc.setMode('static');
+
+                    // Reset to orbit view looking at origin, pulled back from frustum
+                    const cam = this.sceneManager.camera;
+                    if (cam && this._orbitControls) {
+                        const dir = new THREE.Vector3();
+                        cam.getWorldDirection(dir);
+                        cam.position.addScaledVector(dir, -2.0);
+                        this._orbitControls.target.set(0, 0, 0);
+                        cam.fov = 50;
+                        cam.updateProjectionMatrix();
+                        this._orbitControls.enabled = true;
+                        this._orbitControls.update();
+                    }
+
                     this._showBdIndicator(this._bdLang === 'ja' ? '自由操作' : 'free control');
                     this._bdLog('cam', 'returned to free control');
                 }
@@ -2175,52 +2188,61 @@ export class MVEngine {
         const group = new THREE.Group();
         group.name = 'cameraPathViz';
 
-        // Sample path every 0.5s using getAuthoredStateAtTime
+        // Sample path with time info
         const duration = this.audio.getDuration() || 160;
-        const points = [];
-        for (let t = 0; t <= duration; t += 0.5) {
+        const sampleTimes = [];
+        const positions = [];
+        for (let t = 0; t <= duration; t += 0.25) {
             const state = cc.getAuthoredStateAtTime(t);
             if (state) {
-                points.push(new THREE.Vector3(state.position[0], state.position[1], state.position[2]));
+                sampleTimes.push(t);
+                positions.push(state.position[0], state.position[1], state.position[2]);
             }
         }
 
-        // Path line
-        if (points.length > 1) {
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({
-                color: 0x000000,
-                opacity: 0.7,
-                transparent: true,
-                depthTest: false,
-                depthWrite: false
-            });
-            const line = new THREE.Line(geometry, material);
-            line.renderOrder = 999;
-            group.add(line);
-        }
-
-        // Keyframe position markers
-        const sphereGeo = new THREE.SphereGeometry(0.03, 8, 8);
-        const sphereMat = new THREE.MeshBasicMaterial({
-            color: 0x000000,
-            opacity: 0.8,
+        // Active segment line (2 points: start keyframe → end keyframe, updated per frame)
+        const segPositions = new Float32Array(2 * 3);
+        const segGeo = new THREE.BufferGeometry();
+        segGeo.setAttribute('position', new THREE.BufferAttribute(segPositions, 3));
+        const segMat = new THREE.LineBasicMaterial({
+            color: 0x00ffff, // PP inverts → red
+            linewidth: 3,
             transparent: true,
+            opacity: 0.9,
             depthTest: false,
             depthWrite: false
         });
-        for (const kf of cc.keyframes) {
-            const state = cc.getAuthoredStateAtTime(kf.time != null ? kf.time : 0);
-            if (state) {
-                const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-                sphere.position.set(state.position[0], state.position[1], state.position[2]);
-                sphere.renderOrder = 1000;
-                group.add(sphere);
-            }
+        const segLine = new THREE.Line(segGeo, segMat);
+        segLine.name = 'pathLine';
+        segLine.renderOrder = 999;
+        segLine.visible = false;
+        group.add(segLine);
+
+        // Store sorted keyframe data for segment lookup
+        this._bdPathKfData = cc.keyframes
+            .map(kf => ({ time: kf.time != null ? kf.time : 0 }))
+            .sort((a, b) => a.time - b.time);
+        // Resolve positions for each keyframe
+        for (const kd of this._bdPathKfData) {
+            const s = cc.getAuthoredStateAtTime(kd.time);
+            if (s) kd.pos = new THREE.Vector3(s.position[0], s.position[1], s.position[2]);
         }
 
-        // Current position marker (larger, updated per frame)
-        const cursorGeo = new THREE.SphereGeometry(0.06, 12, 12);
+        // Endpoint markers (2 spheres, repositioned per frame)
+        const sphereGeo = new THREE.SphereGeometry(0.012, 6, 6);
+        const mkMat = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            depthTest: false, depthWrite: false
+        });
+        const mkStart = new THREE.Mesh(sphereGeo, mkMat.clone());
+        const mkEnd = new THREE.Mesh(sphereGeo, mkMat);
+        mkStart.name = 'segStart'; mkEnd.name = 'segEnd';
+        mkStart.renderOrder = 1000; mkEnd.renderOrder = 1000;
+        mkStart.visible = false; mkEnd.visible = false;
+        group.add(mkStart); group.add(mkEnd);
+
+        // Current position marker
+        const cursorGeo = new THREE.SphereGeometry(0.03, 10, 10);
         const cursorMat = new THREE.MeshBasicMaterial({
             color: 0xff0000,
             opacity: 1.0,
@@ -2231,6 +2253,7 @@ export class MVEngine {
         const cursor = new THREE.Mesh(cursorGeo, cursorMat);
         cursor.renderOrder = 1001;
         cursor.name = 'pathCursor';
+        cursor.visible = false;
         group.add(cursor);
 
         scene.add(group);
@@ -2247,6 +2270,8 @@ export class MVEngine {
             });
             this._bdCameraPathViz.removeFromParent();
             this._bdCameraPathViz = null;
+            this._bdPathSampleTimes = null;
+            this._bdPathKfData = null;
             this._bdLog('cam', 'path visualization OFF');
         }
     }
@@ -2258,23 +2283,63 @@ export class MVEngine {
         const state = cc.getAuthoredStateAtTime(musicTime);
         if (!state) return;
 
-        // Adapt colors to PP inversion state
         const ppOn = this.sceneManager.postProcessing?.enabled !== false;
-        const lineColor = ppOn ? 0xffffff : 0x000000;
-        const cursorColor = ppOn ? 0x00ffff : 0xff0000; // red → cyan inverts to red
-        this._bdCameraPathViz.traverse(obj => {
-            if (obj.material && obj.material.color) {
-                if (obj.name === 'pathCursor') {
-                    obj.material.color.setHex(cursorColor);
-                } else {
-                    obj.material.color.setHex(lineColor);
+        const segColor = ppOn ? 0x00ffff : 0xff0000;
+
+        // Find current segment (prev keyframe → next keyframe)
+        const kfData = this._bdPathKfData;
+        const line = this._bdCameraPathViz.getObjectByName('pathLine');
+        const mkStart = this._bdCameraPathViz.getObjectByName('segStart');
+        const mkEnd = this._bdCameraPathViz.getObjectByName('segEnd');
+
+        if (line && kfData && kfData.length >= 2) {
+            let fromIdx = -1;
+            for (let i = 0; i < kfData.length - 1; i++) {
+                if (musicTime >= kfData[i].time && musicTime < kfData[i + 1].time) {
+                    fromIdx = i; break;
                 }
             }
-        });
 
+            if (fromIdx >= 0 && kfData[fromIdx]?.pos && kfData[fromIdx + 1]?.pos) {
+                const from = kfData[fromIdx], to = kfData[fromIdx + 1];
+                // Detect segment change → start extend animation
+                if (this._bdPathSegIdx !== fromIdx) {
+                    this._bdPathSegIdx = fromIdx;
+                    this._bdPathExtendStart = performance.now();
+                }
+
+                const extendDur = 300; // ms, linear
+                const elapsed = performance.now() - (this._bdPathExtendStart || 0);
+                const t = Math.min(elapsed / extendDur, 1.0);
+
+                // Line from start → animated endpoint
+                const endX = from.pos.x + (to.pos.x - from.pos.x) * t;
+                const endY = from.pos.y + (to.pos.y - from.pos.y) * t;
+                const endZ = from.pos.z + (to.pos.z - from.pos.z) * t;
+
+                const arr = line.geometry.attributes.position.array;
+                arr[0] = from.pos.x; arr[1] = from.pos.y; arr[2] = from.pos.z;
+                arr[3] = endX;        arr[4] = endY;        arr[5] = endZ;
+                line.geometry.attributes.position.needsUpdate = true;
+                line.material.color.setHex(segColor);
+                line.visible = true;
+
+                if (mkStart) { mkStart.position.copy(from.pos); mkStart.material.color.setHex(segColor); mkStart.visible = true; }
+                if (mkEnd) { mkEnd.position.set(endX, endY, endZ); mkEnd.material.color.setHex(segColor); mkEnd.visible = t >= 1.0; }
+            } else {
+                line.visible = false;
+                if (mkStart) mkStart.visible = false;
+                if (mkEnd) mkEnd.visible = false;
+            }
+        }
+
+        // Cursor
+        const cursorColor = ppOn ? 0x00ffff : 0xff0000;
         const cursor = this._bdCameraPathViz.getObjectByName('pathCursor');
         if (cursor) {
+            cursor.material.color.setHex(cursorColor);
             cursor.position.set(state.position[0], state.position[1], state.position[2]);
+            cursor.visible = true;
         }
     }
 
@@ -2289,7 +2354,7 @@ export class MVEngine {
 
         const lineMat = new THREE.LineBasicMaterial({
             color: 0x000000, opacity: 0.85, transparent: true,
-            depthTest: false, depthWrite: false
+            depthTest: true, depthWrite: false
         });
 
         // Camera body wireframe box
@@ -2320,7 +2385,7 @@ export class MVEngine {
         group.add(nearLines);
 
         // Near plane preview mesh (textured quad showing authored camera view)
-        const previewW = 128, previewH = 72;
+        const previewW = 384, previewH = 216;
         const previewRT = new THREE.RenderTarget(previewW, previewH);
         this._bdFrustumPreviewRT = previewRT;
         this._bdFrustumPreviewCam = new THREE.PerspectiveCamera(45, previewW / previewH, 0.1, 100);
@@ -2337,15 +2402,21 @@ export class MVEngine {
         const planeMat = new THREE.MeshBasicMaterial({
             map: previewRT.texture,
             side: THREE.DoubleSide,
-            depthTest: false,
+            depthTest: true,
             depthWrite: false,
             transparent: true,
-            opacity: 0.85,
+            opacity: 1.0,
         });
         const planeMesh = new THREE.Mesh(planeGeo, planeMat);
         planeMesh.name = 'frustumPreview';
         planeMesh.renderOrder = 1001;
         group.add(planeMesh);
+
+        // Status label (HTML overlay, screen-space — constant size)
+        const labelEl = document.createElement('div');
+        labelEl.style.cssText = "position:fixed;pointer-events:none;font:bold 11px 'SF Mono','Menlo',monospace;white-space:nowrap;z-index:100;display:none;";
+        document.body.appendChild(labelEl);
+        this._bdFrustumLabel = labelEl;
 
         group.visible = false; // hidden until first _updateCameraFrustumViz positions geometry
         scene.add(group);
@@ -2354,6 +2425,14 @@ export class MVEngine {
 
     _updateCameraFrustumViz(musicTime) {
         if (!this._bdCameraFrustumViz) return;
+
+        // Hide frustum viz while following authored path (preview plane would cover the screen)
+        if (this._followingAuthoredPath) {
+            this._bdCameraFrustumViz.visible = false;
+            if (this._bdFrustumLabel) this._bdFrustumLabel.style.display = 'none';
+            return;
+        }
+
         const cc = this.sceneManager.cameraController;
         if (!cc) return;
         const state = cc.getAuthoredStateAtTime(musicTime);
@@ -2363,7 +2442,7 @@ export class MVEngine {
         const ppOn = this.sceneManager.postProcessing?.enabled !== false;
         const lineColor = ppOn ? 0xffffff : 0x000000;
         this._bdCameraFrustumViz.traverse(obj => {
-            if (obj.name === 'frustumPreview') return; // don't tint preview texture
+            if (obj.name === 'frustumPreview') return;
             if (obj.material && obj.material.color) obj.material.color.setHex(lineColor);
         });
 
@@ -2390,6 +2469,46 @@ export class MVEngine {
         if (body) {
             body.position.copy(pos);
             body.quaternion.copy(quat);
+        }
+
+        // Update status label (HTML overlay projected to screen)
+        if (this._bdFrustumLabel && cc.keyframes) {
+            // Project camera body top to screen
+            const upDir2 = new THREE.Vector3(0, 1, 0).applyQuaternion(quat);
+            const labelWorld = pos.clone().addScaledVector(upDir2, 0.2);
+            const cam = this.sceneManager.camera;
+            const projected = labelWorld.project(cam);
+            const el = this.sceneManager.renderer?.domElement;
+            if (el) {
+                const x = (projected.x * 0.5 + 0.5) * el.clientWidth;
+                const y = (-projected.y * 0.5 + 0.5) * el.clientHeight;
+                // Hide if behind camera
+                if (projected.z > 1) {
+                    this._bdFrustumLabel.style.display = 'none';
+                } else {
+                    this._bdFrustumLabel.style.display = '';
+                    this._bdFrustumLabel.style.left = x + 'px';
+                    this._bdFrustumLabel.style.top = (y - 16) + 'px';
+                    this._bdFrustumLabel.style.transform = 'translateX(-50%)';
+                    this._bdFrustumLabel.style.color = ppOn ? '#000' : '#fff';
+
+                    // Find current keyframe movement and progress within it
+                    const kfs = cc.keyframes;
+                    let kfIdx = 0, progress = 0, easing = '', dur = 0;
+                    for (let i = 1; i < kfs.length; i++) {
+                        const t0 = kfs[i].time != null ? kfs[i].time : 0;
+                        dur = kfs[i].duration || 2;
+                        if (musicTime >= t0 && musicTime < t0 + dur) {
+                            kfIdx = i;
+                            progress = (musicTime - t0) / dur;
+                            easing = kfs[i].easing || 'power2.inOut';
+                            break;
+                        }
+                    }
+                    const pct = (progress * 100).toFixed(0);
+                    this._bdFrustumLabel.textContent = `KF${kfIdx-1}→${kfIdx} ${pct}% ${dur.toFixed(1)}s ${easing} FOV${fov.toFixed(0)}`;
+                }
+            }
         }
 
         // Compute near plane corners
@@ -2460,12 +2579,14 @@ export class MVEngine {
                 cam.position.copy(pos);
                 cam.lookAt(lookAt);
                 cam.updateProjectionMatrix();
-                // Hide frustum viz during preview render
+                // Hide frustum viz and camera path during preview render
                 this._bdCameraFrustumViz.visible = false;
+                if (this._bdCameraPathViz) this._bdCameraPathViz.visible = false;
                 renderer.setRenderTarget(this._bdFrustumPreviewRT);
                 renderer.render(scene, cam);
                 renderer.setRenderTarget(null);
                 this._bdCameraFrustumViz.visible = true;
+                if (this._bdCameraPathViz) this._bdCameraPathViz.visible = true;
             }
         }
     }
@@ -2487,6 +2608,7 @@ export class MVEngine {
             this._bdFrustumPreviewRT = null;
         }
         this._bdFrustumPreviewCam = null;
+        if (this._bdFrustumLabel) { this._bdFrustumLabel.remove(); this._bdFrustumLabel = null; }
     }
 
     _createAxisGizmo() {
@@ -2676,6 +2798,8 @@ export class MVEngine {
             this._orbitControls.target.set(0, 0, 0);
             const cam = this.sceneManager.camera;
             cam.position.set(0, 6, 12);
+            cam.fov = 50;
+            cam.updateProjectionMatrix();
             cam.lookAt(0, 0, 0);
             this._orbitControls.update();
         }
@@ -2699,6 +2823,9 @@ export class MVEngine {
 
         // Create camera frustum visualization (always on in explore mode)
         this._createCameraFrustumViz();
+
+        // Create camera path visualization (on by default)
+        this._createCameraPathViz();
 
         // Create axis orientation gizmo (PC only)
         this._createAxisGizmo();
