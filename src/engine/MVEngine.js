@@ -2277,6 +2277,14 @@ export class MVEngine {
 
     _updateCameraPathCursor(musicTime) {
         if (!this._bdCameraPathViz) return;
+
+        // Hide path viz (line, markers, cursor) while following authored path
+        if (this._followingAuthoredPath) {
+            this._bdCameraPathViz.visible = false;
+            return;
+        }
+        this._bdCameraPathViz.visible = true;
+
         const cc = this.sceneManager.cameraController;
         if (!cc) return;
         const state = cc.getAuthoredStateAtTime(musicTime);
