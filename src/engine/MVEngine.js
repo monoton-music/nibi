@@ -563,12 +563,16 @@ export class MVEngine {
                 play: '音楽をスタート',
                 fullscreen: 'フルスクリーンにする',
                 nico: 'ニコニコ動画で再生 ↗',
+                youtube: 'YouTubeで再生 ↗',
+                bilibili: 'BiliBiliで再生 ↗',
                 about: '制作について',
             },
             en: {
                 play: 'Start Music',
                 fullscreen: 'Go Fullscreen',
                 nico: 'Play on Niconico ↗',
+                youtube: 'Play on YouTube ↗',
+                bilibili: 'Play on BiliBili ↗',
                 about: 'About',
             }
         };
@@ -584,6 +588,10 @@ export class MVEngine {
         </div>
         <div class="mv-start-nico">
           <a class="mv-start-btn mv-nico-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="mv-start-video-links">
+          <a class="mv-start-btn mv-youtube-link" href="https://youtu.be/VFeW3y_3rv0" target="_blank" rel="noopener"></a>
+          <a class="mv-start-btn mv-bilibili-link" href="https://www.bilibili.com/video/BV1irfMBYEFZ" target="_blank" rel="noopener"></a>
         </div>
         <div class="mv-start-about">
           <button class="mv-start-btn mv-start-about-btn"></button>
@@ -645,6 +653,8 @@ export class MVEngine {
         this.overlay.querySelector('.mv-windowed-play-btn').textContent = t.play;
         this.overlay.querySelector('.mv-fullscreen-play-btn').textContent = t.fullscreen;
         this.overlay.querySelector('.mv-nico-link').textContent = t.nico;
+        this.overlay.querySelector('.mv-youtube-link').textContent = t.youtube;
+        this.overlay.querySelector('.mv-bilibili-link').textContent = t.bilibili;
         this.overlay.querySelector('.mv-start-about-btn').textContent = t.about;
         this.overlay.querySelectorAll('.mv-start-lang-btn').forEach(btn => {
             btn.style.opacity = btn.dataset.lang === this._startLang ? '1' : '0.4';
@@ -730,6 +740,13 @@ export class MVEngine {
                     opacity: 0.7;
                     text-decoration: none;
                 }
+                .mv-youtube-link, .mv-bilibili-link,
+                .mv-end-youtube-link, .mv-end-bilibili-link {
+                    font-size: 0.8rem !important;
+                    opacity: 0.55;
+                    text-decoration: none;
+                    color: inherit;
+                }
                 .mv-start-lang-btn {
                     background: none;
                     border: none;
@@ -806,9 +823,10 @@ export class MVEngine {
     `;
 
         const nico = this.overlay.querySelector('.mv-start-nico');
-        nico.style.cssText = `
-      margin-bottom: 1.5rem;
-    `;
+        nico.style.cssText = `margin-bottom: 0.3rem;`;
+
+        const videoLinks = this.overlay.querySelector('.mv-start-video-links');
+        if (videoLinks) videoLinks.style.cssText = `display: flex; gap: 1rem; margin-bottom: 1.5rem;`;
 
         const lang = this.overlay.querySelector('.mv-start-lang');
         lang.style.cssText = `
@@ -1240,8 +1258,8 @@ export class MVEngine {
         this._endLang = this._startLang || 'ja';
 
         const endI18n = {
-            ja: { replay: 'もう一度', nico: 'ニコニコ動画で再生 ↗', about: '制作について' },
-            en: { replay: 'Replay', nico: 'Play on Niconico ↗', about: 'About' },
+            ja: { replay: 'もう一度', nico: 'ニコニコ動画で再生 ↗', youtube: 'YouTubeで再生 ↗', bilibili: 'BiliBiliで再生 ↗', about: '制作について' },
+            en: { replay: 'Replay', nico: 'Play on Niconico ↗', youtube: 'Play on YouTube ↗', bilibili: 'Play on BiliBili ↗', about: 'About' },
         };
         this._endI18n = endI18n;
 
@@ -1257,6 +1275,10 @@ export class MVEngine {
         </div>
         <div class="mv-end-nico-row">
           <a class="mv-end-btn mv-end-nico-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="mv-end-video-links">
+          <a class="mv-end-btn mv-end-youtube-link" href="https://youtu.be/VFeW3y_3rv0" target="_blank" rel="noopener"></a>
+          <a class="mv-end-btn mv-end-bilibili-link" href="https://www.bilibili.com/video/BV1irfMBYEFZ" target="_blank" rel="noopener"></a>
         </div>
         <div class="mv-end-about">
           <button class="mv-end-btn mv-end-about-btn"></button>
@@ -1304,6 +1326,8 @@ export class MVEngine {
         const t = this._endI18n[this._endLang] || this._endI18n.ja;
         this.endScreen.querySelector('.mv-replay-button').textContent = t.replay;
         this.endScreen.querySelector('.mv-end-nico-link').textContent = t.nico;
+        this.endScreen.querySelector('.mv-end-youtube-link').textContent = t.youtube;
+        this.endScreen.querySelector('.mv-end-bilibili-link').textContent = t.bilibili;
         this.endScreen.querySelector('.mv-end-about-btn').textContent = t.about;
         this.endScreen.querySelectorAll('.mv-end-lang-btn').forEach(btn => {
             btn.style.opacity = btn.dataset.lang === this._endLang ? '1' : '0.4';
@@ -1402,8 +1426,10 @@ export class MVEngine {
 
         const nicoRow = this.endScreen.querySelector('.mv-end-nico-row');
         if (nicoRow) {
-            nicoRow.style.cssText = `margin-top: 1rem;`;
+            nicoRow.style.cssText = `margin-top: 1rem; margin-bottom: 0.3rem;`;
         }
+        const endVideoLinks = this.endScreen.querySelector('.mv-end-video-links');
+        if (endVideoLinks) endVideoLinks.style.cssText = `display: flex; gap: 1rem;`;
         const nicoLink = this.endScreen.querySelector('.mv-end-nico-link');
         if (nicoLink) {
             nicoLink.style.cssText += `
@@ -1731,14 +1757,14 @@ export class MVEngine {
                 credits: [
                     { label: '制作', value: 'monoton / Haruma Tasaki (Philtz)' },
                     { label: '', value: '<a class="mv-meta-link" href="https://monotonmusic.com" target="_blank" rel="noopener">monotonmusic.com</a> · <a class="mv-meta-link" href="https://philtz.com" target="_blank" rel="noopener">philtz.com</a>' },
-                    { label: 'システム', value: '自作のWebベース実行型MVシステム' },
                     { label: '描画', value: 'Three.js WebGPU / WebGL 2' },
                     { label: 'パーティクル演算', value: 'TSL Compute Shaders' },
                     { label: '音声解析', value: 'Web Audio API' },
                     { label: 'ビルド', value: 'Vite' },
-                    { label: '動画', value: '<a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">nicovideo.jp/watch/sm45971593</a>' },
+                    { label: '動画投稿一覧', value: '<a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">ニコニコ動画 ↗</a> · <a class="mv-meta-link" href="https://youtu.be/VFeW3y_3rv0" target="_blank" rel="noopener">YouTube ↗</a> · <a class="mv-meta-link" href="https://www.bilibili.com/video/BV1irfMBYEFZ" target="_blank" rel="noopener">BiliBili ↗</a>' },
+                    { label: '制作についての解説', value: '<a class="mv-meta-link" href="https://note.com/monoton_music/n/nd0b2f03ad1e9" target="_blank" rel="noopener">解説記事（note）↗</a>' },
                 ],
-                note: 'この作品は<a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">ボカコレ2026冬 ルーキー</a>に参加しています。',
+                note: '<a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">ボカコレ2026冬ルーキー</a>参加作品',
                 thanks: 'Special Thanks: デバッグに協力してくれた<a class="mv-meta-link" href="https://philtz.com" target="_blank" rel="noopener">Philtz</a>の皆さん',
                 close: '×',
             },
@@ -1747,14 +1773,14 @@ export class MVEngine {
                 credits: [
                     { label: 'Created by', value: 'monoton / Haruma Tasaki (Philtz)' },
                     { label: '', value: '<a class="mv-meta-link" href="https://monotonmusic.com" target="_blank" rel="noopener">monotonmusic.com</a> · <a class="mv-meta-link" href="https://philtz.com" target="_blank" rel="noopener">philtz.com</a>' },
-                    { label: 'System', value: 'Self-built web-based executable MV system' },
                     { label: 'Rendering', value: 'Three.js WebGPU / WebGL 2' },
                     { label: 'Particle physics', value: 'TSL Compute Shaders' },
                     { label: 'Audio analysis', value: 'Web Audio API' },
                     { label: 'Build', value: 'Vite' },
-                    { label: 'Video', value: '<a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">nicovideo.jp/watch/sm45971593</a>' },
+                    { label: 'Videos', value: '<a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">Niconico ↗</a> · <a class="mv-meta-link" href="https://youtu.be/VFeW3y_3rv0" target="_blank" rel="noopener">YouTube ↗</a> · <a class="mv-meta-link" href="https://www.bilibili.com/video/BV1irfMBYEFZ" target="_blank" rel="noopener">BiliBili ↗</a>' },
+                    { label: 'Making-of', value: '<a class="mv-meta-link" href="https://note.com/monoton_music/n/nd0b2f03ad1e9" target="_blank" rel="noopener">Article (note) ↗</a>' },
                 ],
-                note: 'This work is an entry for <a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">Vocaloid Collection 2026 Winter (Rookie)</a>.',
+                note: 'An entry for <a class="mv-meta-link" href="https://www.nicovideo.jp/watch/sm45971593" target="_blank" rel="noopener">Vocaloid Collection 2026 Winter Rookie</a>.',
                 thanks: 'Special Thanks: Everyone at <a class="mv-meta-link" href="https://philtz.com" target="_blank" rel="noopener">Philtz</a> for debugging support',
                 close: '×',
             },
