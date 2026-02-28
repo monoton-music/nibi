@@ -3430,12 +3430,10 @@ export class MVEngine {
             marker.className = `mv-bd-marker ${hasText ? 'mv-bd-marker-lyric' : 'mv-bd-marker-flow'}`;
             marker.style.left = `${pct}%`;
 
-            const tooltip = document.createElement('div');
-            tooltip.className = 'mv-bd-marker-tooltip';
-            tooltip.textContent = hasText
+            const tooltipText = hasText
                 ? `${fmt(lyric.time)} "${lyric.text}"`
                 : `${fmt(lyric.time)} [${lyric.pattern || 'flow'}]`;
-            marker.appendChild(tooltip);
+            marker.innerHTML = `<div class="mv-bd-marker-tooltip">${tooltipText}</div>`;
 
             marker.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -3453,10 +3451,7 @@ export class MVEngine {
                 const marker = document.createElement('div');
                 marker.className = 'mv-bd-marker mv-bd-marker-cam';
                 marker.style.left = `${pct}%`;
-                const tooltip = document.createElement('div');
-                tooltip.className = 'mv-bd-marker-tooltip';
-                tooltip.textContent = `${fmt(t)} [cam]`;
-                marker.appendChild(tooltip);
+                marker.innerHTML = `<div class="mv-bd-marker-tooltip">${fmt(t)} [cam]</div>`;
                 marker.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.seekToTime(t);
@@ -3539,7 +3534,7 @@ export class MVEngine {
         // Camera info
         const cam = this.sceneManager.camera;
         const camPos = cam ? `[${cam.position.x.toFixed(2)}, ${cam.position.y.toFixed(2)}, ${cam.position.z.toFixed(2)}]` : '-';
-        const camLookAt = this.sceneManager.cameraController?.lookAtTarget;
+        const camLookAt = this.sceneManager.cameraController?._lookAtTarget;
         const lookAtStr = camLookAt ? `[${camLookAt.x.toFixed(2)}, ${camLookAt.y.toFixed(2)}, ${camLookAt.z.toFixed(2)}]` : '-';
         const fov = cam?.fov ? cam.fov.toFixed(1) : '-';
         const camMode = this.sceneManager.cameraController?.mode || '-';
@@ -3725,6 +3720,179 @@ export class MVEngine {
         const { OfflineRenderer } = await import('./OfflineRenderer.js');
         const renderer = new OfflineRenderer(this);
         return renderer.start(options);
+    }
+
+    /**
+     * Capture a single still frame as PNG (dev only).
+     * scale > 100: render at scaled resolution, center-crop to output width x height.
+     */
+    async captureStill({ width = 1920, height = 1080, scale = 100, dotScale = 1, targetTime = null } = {}) {
+        if (!import.meta.env.DEV) {
+            console.warn('[MVEngine] captureStill is only available in dev mode');
+            return;
+        }
+        if (!this.isLoaded) {
+            console.warn('[MVEngine] Engine not loaded yet');
+            return;
+        }
+
+        const scaleFactor = Math.max(scale, 100) / 100;
+
+        // Pause rAF loop to prevent canvas overwrite during async capture
+        const hadRaf = !!this.rafId;
+        const hadBgRaf = !!this._bgRafId;
+        if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
+        if (this._bgRafId) { cancelAnimationFrame(this._bgRafId); this._bgRafId = null; }
+
+        try {
+            const sm = this.sceneManager;
+            const renderer = sm.renderer;
+            const canvas = renderer.domElement;
+            const camera = sm.camera;
+
+            // Save original state
+            const origWidth = canvas.width;
+            const origHeight = canvas.height;
+            const origPixelRatio = renderer.getPixelRatio();
+            const origFov = camera.fov;
+
+            // If targetTime specified, simulate from 0 to reach correct state
+            const captureTime = targetTime != null ? targetTime : (this.audio?.currentTime || 0);
+            if (targetTime != null) {
+                const simFps = 60;
+                const dt = 1 / simFps;
+                const totalFrames = Math.ceil(captureTime * simFps);
+                console.log(`[MVEngine] captureStill: simulating ${totalFrames} frames to ${captureTime.toFixed(2)}s...`);
+
+                // Reset state
+                this.timeline.reset();
+                this.firedLyricIndices.clear();
+                for (const comp of sm.activeComponents) {
+                    if (comp.resetState) comp.resetState();
+                }
+
+                // Run simulation (compute + update, no render)
+                for (let f = 0; f <= totalFrames; f++) {
+                    const t = Math.min(f * dt, captureTime);
+                    this.timeline.update(t);
+                    this._processLyrics(t);
+                    const sceneProgress = this.timeline.getSceneProgress();
+
+                    if (sm.cameraController) {
+                        sm.cameraController.update({ deltaTime: dt, elapsedTime: t, musicTime: t, audioData: null });
+                    }
+                    for (const comp of sm.activeComponents) {
+                        if (comp.getComputeNodes) {
+                            const nodes = comp.getComputeNodes();
+                            if (nodes) for (const node of nodes) renderer.compute(node);
+                        }
+                        if (comp.update) {
+                            comp.update({ deltaTime: dt, elapsedTime: t, musicTime: t, sceneProgress, audioData: null, camera });
+                        }
+                    }
+
+                    // Yield every 120 frames to keep UI responsive
+                    if (f % 120 === 0 && f > 0) {
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+                console.log(`[MVEngine] captureStill: simulation done`);
+            }
+
+            // Render at scaled resolution, capped at GPU max texture size
+            const maxSize = renderer.getMaxTextureSize?.() || 4096;
+            const maxScale = Math.min(scaleFactor, maxSize / Math.max(width, height));
+            const renderW = Math.round(width * maxScale);
+            const renderH = Math.round(height * maxScale);
+            const fovZoom = scaleFactor / maxScale;
+
+            renderer.setPixelRatio(1);
+            renderer.setSize(renderW, renderH);
+            camera.aspect = renderW / renderH;
+            camera.updateProjectionMatrix();
+            if (sm.postProcessing?.onResize) sm.postProcessing.onResize(renderW, renderH);
+
+            // Final frame: compute + camera + component update (no render yet)
+            sm.clock.getDelta();
+            if (sm.cameraController) {
+                sm.cameraController.update({ deltaTime: 0, elapsedTime: captureTime, musicTime: captureTime, audioData: null });
+            }
+            for (const comp of sm.activeComponents) {
+                if (comp.getComputeNodes) {
+                    const nodes = comp.getComputeNodes();
+                    if (nodes) for (const node of nodes) renderer.compute(node);
+                }
+                if (comp.update) {
+                    comp.update({ deltaTime: 0, elapsedTime: captureTime, musicTime: captureTime, sceneProgress: 0, audioData: null, camera });
+                }
+            }
+
+            // Apply dot scale AFTER component update has set uPointSize
+            const totalDotScale = dotScale * maxScale;
+            const savedPointSizes = [];
+            for (const comp of sm.activeComponents) {
+                if (comp._uniforms?.uPointSize) {
+                    savedPointSizes.push({ comp, value: comp._uniforms.uPointSize.value });
+                    comp._uniforms.uPointSize.value *= totalDotScale;
+                }
+            }
+
+            // Apply FOV zoom if resolution cap was hit
+            if (fovZoom > 1) {
+                camera.fov = camera.fov / fovZoom;
+                camera.updateProjectionMatrix();
+            }
+
+            // Render
+            if (sm.postProcessing) {
+                sm.postProcessing.update({ elapsedTime: captureTime });
+                sm.postProcessing.render();
+            } else {
+                renderer.render(sm.scene, camera);
+            }
+
+            // Restore dot sizes
+            for (const { comp, value } of savedPointSizes) {
+                comp._uniforms.uPointSize.value = value;
+            }
+
+            // createImageBitmap waits for GPU completion
+            const bitmap = await createImageBitmap(canvas);
+            const offscreen = new OffscreenCanvas(width, height);
+            const ctx = offscreen.getContext('2d');
+            if (scaleFactor > 1) {
+                // Center-crop from the larger render
+                const sx = Math.round((renderW - width) / 2);
+                const sy = Math.round((renderH - height) / 2);
+                ctx.drawImage(bitmap, sx, sy, width, height, 0, 0, width, height);
+            } else {
+                ctx.drawImage(bitmap, 0, 0);
+            }
+            bitmap.close();
+            const blob = await offscreen.convertToBlob({ type: 'image/png' });
+
+            // Restore original state
+            renderer.setPixelRatio(origPixelRatio);
+            renderer.setSize(origWidth / origPixelRatio, origHeight / origPixelRatio);
+            camera.fov = origFov;
+            camera.aspect = (origWidth / origPixelRatio) / (origHeight / origPixelRatio);
+            camera.updateProjectionMatrix();
+            if (sm.postProcessing?.onResize) sm.postProcessing.onResize(origWidth / origPixelRatio, origHeight / origPixelRatio);
+
+            // Open in new tab (right-click → save as)
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+
+            const scaleLabel = scaleFactor > 1 ? ` (rendered ${renderW}x${renderH}, center-cropped)` : '';
+            console.log(`[MVEngine] Still captured: ${width}x${height}${scaleLabel} at ${captureTime.toFixed(2)}s`);
+        } finally {
+            // Resume rAF loop
+            if (this.isPlaying) {
+                this._startRenderLoop?.();
+            } else if (hadRaf || hadBgRaf) {
+                this._startBackgroundRender?.();
+            }
+        }
     }
 
     /**

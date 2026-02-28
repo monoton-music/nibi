@@ -57,7 +57,7 @@ function showUnsupportedPage() {
 
 import { MVEngine } from './engine/index.js';
 import { GPUParticleSystem } from './components/index.js';
-import { debugOverlay, SceneTuner } from './utils/index.js';
+import { rng, debugOverlay, SceneTuner } from './utils/index.js';
 
 // Mobile detection (used for particle count reduction + pixelRatio cap)
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
@@ -101,7 +101,7 @@ function setLoadingStatus(text) {
 
 // MV engine initialization
 const engine = new MVEngine('#mv-container');
-if (import.meta.env.DEV) window.engine = engine;
+window.engine = engine; // For DevTools
 let mvDataCache = null;
 let mvDataTextCache = null;
 
@@ -128,6 +128,7 @@ const exportQuality = urlParams.get('quality') || 'high'; // standard | high | m
 const exportFrom = parseFloat(urlParams.get('from')) || 0;       // start seconds
 const exportTo = urlParams.get('to') ? parseFloat(urlParams.get('to')) : null; // end seconds (null = until the end)
 const demoEnabled = urlParams.get('demo') === '1';
+const galleryEnabled = import.meta.env.DEV && urlParams.get('gallery') === '1';
 // In particle text MV, lyrics = text targets, so enabled by default
 // Disable explicitly with ?lyrics=0
 const lyricsEnabled = demoEnabled ? false : (lyricsParam !== '0' && lyricsParam !== 'false' && lyricsParam !== 'off');
@@ -220,6 +221,23 @@ async function init() {
   if (exportEnabled) {
     await engine.start();
     engine.startExport({ width: exportWidth, height: exportHeight, fps: exportFps, codec: exportCodec, quality: exportQuality, startTime: exportFrom, duration: exportTo != null ? exportTo - exportFrom : null });
+  }
+
+  // Pattern gallery mode (dev only): ?gallery=1
+  if (galleryEnabled) {
+    // Remove start overlay (bg render is already running from load())
+    if (engine.overlay) {
+      engine.overlay.remove();
+      engine.overlay = null;
+    }
+    // Wait for scene + component to be ready
+    setTimeout(async () => {
+      const { PatternGallery } = await import('./dev/PatternGallery.js');
+      const gallery = new PatternGallery(engine);
+      window._gallery = gallery;
+      await gallery.start();
+    }, 800);
+    return;
   }
 
   if (tunerEnabled) {
@@ -323,6 +341,8 @@ function applyDemoPattern(idx) {
 }
 
 // === Export dialog ===
+const expSettings = { w: '1920', h: '1080', scale: '100', dot: '1.0', stillTime: '', fps: '60', codec: 'h264', quality: 'high', range: 'full' };
+
 function showExportDialog() {
   if (document.querySelector('.export-dialog')) return;
 
@@ -342,18 +362,22 @@ function showExportDialog() {
 
   dialog.innerHTML = `
     <div style="font-size:14px;font-weight:bold;margin-bottom:12px;">Export MP4</div>
-    ${row('Resolution', `${input('w', '1920', '60px')} x ${input('h', '1080', '60px')}`)}
-    ${row('FPS', input('fps', '60', '50px'))}
-    ${row('Codec', select('codec', [['h264', 'H.264', true], ['vp9', 'VP9']]))}
-    ${row('Quality', select('quality', [['standard', 'Standard'], ['high', 'High', true], ['max', 'Max']]))}
+    ${row('Resolution', `${input('w', expSettings.w, '60px')} x ${input('h', expSettings.h, '60px')}`)}
+    ${row('Scale %', input('scale', expSettings.scale, '50px'))}
+    ${row('Dot size', input('dot', expSettings.dot, '50px'))}
+    ${row('Time (sec)', `${input('time', expSettings.stillTime || currentTime.toFixed(2), '60px')} <span style="opacity:0.4;font-size:10px;">blank=current</span>`)}
+    ${row('FPS', input('fps', expSettings.fps, '50px'))}
+    ${row('Codec', select('codec', [['h264', 'H.264', expSettings.codec === 'h264'], ['vp9', 'VP9', expSettings.codec === 'vp9']]))}
+    ${row('Quality', select('quality', [['standard', 'Standard', expSettings.quality === 'standard'], ['high', 'High', expSettings.quality === 'high'], ['max', 'Max', expSettings.quality === 'max']]))}
     <hr style="border:none;border-top:1px solid #eee;margin:14px 0;" />
-    ${row('Range', select('range', [['full', 'Full'], ['current', `From current (${currentTime.toFixed(1)}s)`], ['custom', 'Custom range']]))}
+    ${row('Range', select('range', [['full', 'Full', expSettings.range === 'full'], ['current', `From current (${currentTime.toFixed(1)}s)`, expSettings.range === 'current'], ['custom', 'Custom range', expSettings.range === 'custom']]))}
     <div id="exp-custom-range" style="display:none;">
       ${row('From (sec)', input('from', '0', '60px'))}
       ${row('To (sec)', input('to', totalDuration.toFixed(1), '60px'))}
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
       <button id="exp-cancel" style="padding:6px 16px;border:1px solid #ccc;border-radius:4px;background:none;font:inherit;cursor:pointer;">Cancel</button>
+      <button id="exp-still" style="padding:6px 16px;border:1px solid #888;border-radius:4px;background:none;font:inherit;cursor:pointer;">Still (PNG)</button>
       <button id="exp-start" style="padding:6px 16px;border:none;border-radius:4px;background:#111;color:#fff;font:inherit;cursor:pointer;">Export</button>
     </div>
   `;
@@ -370,11 +394,33 @@ function showExportDialog() {
     }
   });
 
-  const close = () => bg.remove();
+  const saveSettings = () => {
+    expSettings.w = dialog.querySelector('#exp-w').value;
+    expSettings.h = dialog.querySelector('#exp-h').value;
+    expSettings.scale = dialog.querySelector('#exp-scale').value;
+    expSettings.dot = dialog.querySelector('#exp-dot').value;
+    expSettings.stillTime = dialog.querySelector('#exp-time').value;
+    expSettings.fps = dialog.querySelector('#exp-fps').value;
+    expSettings.codec = dialog.querySelector('#exp-codec').value;
+    expSettings.quality = dialog.querySelector('#exp-quality').value;
+    expSettings.range = rangeSelect.value;
+  };
+  const close = () => { saveSettings(); bg.remove(); };
   bg.addEventListener('click', (e) => { if (e.target === bg) close(); });
   dialog.querySelector('#exp-cancel').addEventListener('click', close);
   document.addEventListener('keydown', function onKey(e) {
     if (e.code === 'Escape') { close(); document.removeEventListener('keydown', onKey); }
+  });
+
+  dialog.querySelector('#exp-still').addEventListener('click', async () => {
+    const width = parseInt(dialog.querySelector('#exp-w').value) || 1920;
+    const height = parseInt(dialog.querySelector('#exp-h').value) || 1080;
+    const scale = parseInt(dialog.querySelector('#exp-scale').value) || 100;
+    const dotScale = parseFloat(dialog.querySelector('#exp-dot').value) || 1;
+    const timeVal = dialog.querySelector('#exp-time').value.trim();
+    const targetTime = timeVal !== '' ? parseFloat(timeVal) : null;
+    await engine.captureStill({ width, height, scale, dotScale, targetTime });
+    close();
   });
 
   dialog.querySelector('#exp-start').addEventListener('click', () => {
